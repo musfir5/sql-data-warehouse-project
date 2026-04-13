@@ -39,3 +39,51 @@ create schema silver;
 go
 create schema gold;
 go
+
+
+/*
+======================================================
+Create DWH Schemas (Users) in Oracle
+======================================================
+Script Purpose:
+This script sets up the three layers of the Data Warehouse by creating 
+three separate schemas: 'bronze', 'silver', and 'gold'.
+
+Note: In Oracle, a 'Schema' is owned by a 'User'. 
+We create users and grant them session privileges.
+*/
+
+-- 1. Drop Users if they already exist to start fresh
+-- 'CASCADE' ensures all tables/objects inside are deleted
+select * from dba_users;
+
+BEGIN
+    FOR user_rec IN (SELECT username FROM dba_users WHERE username IN ('BRONZE', 'SILVER', 'GOLD')) LOOP
+        EXECUTE IMMEDIATE 'DROP USER ' || user_rec.username || ' CASCADE';
+    END LOOP;
+END;
+/
+
+-- 2. Create the Bronze Schema
+CREATE USER bronze IDENTIFIED BY password;
+
+GRANT CREATE SESSION, CREATE TABLE, CREATE VIEW, CREATE PROCEDURE TO bronze;
+
+ALTER USER bronze QUOTA UNLIMITED ON USERS;
+
+-- 3. Create the Silver Schema
+CREATE USER silver IDENTIFIED BY password;
+
+GRANT CREATE SESSION, CREATE TABLE, CREATE VIEW, CREATE PROCEDURE TO silver;
+
+ALTER USER silver QUOTA UNLIMITED ON USERS;
+
+-- 4. Create the Gold Schema
+CREATE USER gold IDENTIFIED BY password;
+
+GRANT CREATE SESSION, CREATE TABLE, CREATE VIEW, CREATE PROCEDURE TO gold;
+
+ALTER USER gold QUOTA UNLIMITED ON USERS;
+
+
+SELECT * FROM dba_users WHERE username IN ('BRONZE', 'SILVER', 'GOLD')
